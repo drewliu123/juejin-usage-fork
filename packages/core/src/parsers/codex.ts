@@ -1,7 +1,6 @@
 import { localEvidence, validUsageFields } from '../local-metrics.js';
 import { createReadStream, type Stats } from 'node:fs';
 import { createInterface } from 'node:readline';
-import { stat } from 'node:fs/promises';
 import { basename } from 'node:path';
 import type {
   CodexFileCursor,
@@ -24,6 +23,7 @@ import {
   bucketsFromState,
   computeTotalTokens,
   findJsonlFiles,
+  statFileSync,
   type BucketAccumulator,
 } from './shared.js';
 import {
@@ -198,7 +198,7 @@ export async function parseCodexIncremental(
   const fileStats = new Map<string, Stats>();
 
   for (const filePath of files) {
-    const st = await stat(filePath).catch(() => null);
+    const st = statFileSync(filePath);
     if (!st?.isFile()) continue;
     fileStats.set(filePath, st);
 

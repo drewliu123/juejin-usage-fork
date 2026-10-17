@@ -1,3 +1,5 @@
+> **本仓库是 [juejin-cn/juejin-usage](https://github.com/juejin-cn/juejin-usage) 的独立 fork**，在上游基础上优化了同步时的性能，并让 cursors.json 改为原子写入。改动内容与实测数据见 [FORK.md](FORK.md)。原版权声明保留在 [LICENSE](LICENSE) 中。
+
 <p align="center">
   <img src="./assets/icon.png" alt="Juejin Usage logo" width="200">
 </p>

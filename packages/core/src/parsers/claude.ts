@@ -1,7 +1,6 @@
 import { localEvidence, validUsageFields } from '../local-metrics.js';
 import { createReadStream } from 'node:fs';
 import { createInterface } from 'node:readline';
-import { stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { sep } from 'node:path';
 
@@ -19,6 +18,7 @@ import {
   bucketsFromState,
   computeTotalTokens,
   findJsonlFiles,
+  statFileSync,
   type BucketAccumulator,
 } from './shared.js';
 
@@ -314,7 +314,7 @@ export async function parseClaudeIncremental(
   };
 
   for (const filePath of files) {
-    const st = await stat(filePath).catch(() => null);
+    const st = statFileSync(filePath);
     if (!st?.isFile()) continue;
 
     const prev = claudeCursor.files[filePath];
@@ -393,14 +393,11 @@ export async function parseClaudeIncremental(
   }
 
   // Retain identities for as long as logs can be replayed (truncation/range changes).
+  // seenHashes only has to carry legacy first-wins keys not yet migrated into
+  // seenUsage; mirroring every seenUsage key here duplicated them on disk and
+  // rebuilt a 10k+ array each round without changing any dedup decision.
   claudeCursor.seenUsage = seenUsage;
-  const remainingLegacy = Array.from(legacyHashes).filter(
-    (k) => !claudeCursor.seenUsage![k],
-  );
-  claudeCursor.seenHashes = [
-    ...remainingLegacy,
-    ...Object.keys(claudeCursor.seenUsage),
-  ];
+  claudeCursor.seenHashes = Array.from(legacyHashes).filter((k) => !seenUsage[k]);
 
   return {
     result: {

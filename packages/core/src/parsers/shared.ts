@@ -1,6 +1,6 @@
 import { mergeLocalEvidence } from '../local-metrics.js';
 import { readdir, stat } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, statSync, type Stats } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
@@ -26,6 +26,22 @@ export function bucketStateKey(
   collector = '',
 ): string {
   return `${source}|${collector}|${model}|${project}|${hourStart}`;
+}
+
+/**
+ * Stat one file synchronously; `null` when it is gone or unreadable.
+ *
+ * Poll rounds stat every known session file (thousands for Claude/Codex)
+ * before deciding which ones grew. The promise-based `stat` costs a threadpool
+ * hop and a promise per file — roughly 6x the CPU of `statSync` for the same
+ * syscall — and the sync worker has nothing else to run meanwhile.
+ */
+export function statFileSync(path: string): Stats | null {
+  try {
+    return statSync(path, { throwIfNoEntry: false }) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 interface JsonlWalkEntry {

@@ -22,6 +22,7 @@ import {
   accumulateBucket,
   bucketsFromState,
   computeTotalTokens,
+  statFileSync,
   type BucketAccumulator,
 } from './shared.js';
 import { queryDbJson, readSqliteWithSnapshot, sqliteTableExists } from './sqlite.js';
@@ -254,7 +255,7 @@ export async function parseWorkbuddyIncremental(
   let filesProcessed = 0;
 
   for (const filePath of files) {
-    const st = await stat(filePath).catch(() => null);
+    const st = statFileSync(filePath);
     if (!st?.isFile()) continue;
 
     const prev = fileOffsets[filePath];
